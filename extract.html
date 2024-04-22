@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Extractor</title>
+    <style>
+        body {
+            background-color: #300A24;
+            color: #FFFFFF;
+            font-family: monospace;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h2 {
+            color: #00FF00;
+        }
+
+        p {
+            color: #FFFFFF;
+        }
+
+        table {
+            color: #FFFFFF;
+            margin-bottom: 10px;
+        }
+
+        input[type="checkbox"],
+        input[type="text"],
+        textarea,
+        button {
+            background-color: #300A24;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            padding: 5px;
+            display: block;
+            width: 100%;
+            box-sizing: border-box; /* Untuk menghindari lebar tambahan dari padding dan border */
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #FFFFFF;
+            color: #300A24;
+        }
+
+        /* Penambahan properti CSS untuk menyesuaikan tampilan hasil proxy */
+        #resultBox {
+            border: 1px solid #FFFFFF;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 300px; /* Menambahkan max-height agar kotak hasil tidak terlalu panjang */
+            overflow-y: auto; /* Menambahkan overflow-y agar kotak hasil bisa di-scroll jika terlalu panjang */
+        }
+
+        #resultBox h3 {
+            color: #00FF00;
+            margin-top: 0;
+        }
+
+        #resultBox ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0; /* Menambahkan margin agar tidak ada ruang kosong di sekitar kotak hasil */
+        }
+
+        #resultBox li {
+            margin-bottom: 5px; /* Menambahkan margin-bottom agar ada jarak antara setiap baris proxy */
+        }
+
+        #resultBox span {
+            color: #00FF00;
+            word-break: break-all; /* Menambahkan word-break agar teks proxy bisa patah di antara karakter */
+        }
+
+        /* Aturan media queries untuk tampilan responsif */
+        @media only screen and (min-width: 600px) {
+            /* Desktop */
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Proxy Extractor</h2>
+        <p>Copy and paste the text containing a list of IP:port below, select or input the protocol you want to use, then click 'Extract</p>
+        <table>
+            <tr>
+                <td><input type="checkbox" id="socks5Checkbox" value="socks5://">| SOCKS5</td>
+                <td><input type="checkbox" id="httpCheckbox" value="http://">| HTTP</td>
+                <td><input type="checkbox" id="nullCheckbox" value="null">| None</td>
+                <td><input type="text" id="customProtocol" placeholder="Custom"></td>
+            </tr>
+        </table>
+        <textarea id="inputText" rows="10" placeholder="Paste teks di sini..."></textarea>
+        <button onclick="extractIPPort()">Extract</button>
+        <button onclick="clearText()">Clear</button>
+        <button id="copyButton" style="display: none;" onclick="copyAllProxy()">Copy All Proxy</button>
+        <p id="totalLines"></p>
+        <div id="resultBox" style="display: none;">
+            <h3>Result:</h3>
+            <ul id="ipPortList">
+                
+            </ul>
+        </div>
+    </div>
+    
+    
+    <script>
+        function extractIPPort() {
+            var inputText = document.getElementById("inputText").value.trim();
+            var protocols = document.querySelectorAll('input[type="checkbox"]:checked');
+            var customProtocol = document.getElementById("customProtocol").value.trim();
+            var resultBox = document.getElementById("resultBox");
+            var copyButton = document.getElementById("copyButton");
+            var totalLinesElement = document.getElementById("totalLines");
+            
+            resultBox.innerHTML = '';
+            totalLinesElement.textContent = '';
+
+            var protocolList = [];
+            protocols.forEach(function(checkbox) {
+                protocolList.push(checkbox.value);
+            });
+
+            if (customProtocol) {
+                protocolList.push(customProtocol);
+            }
+
+            var lines = inputText.split('\n');
+            lines.forEach(function(line) {
+    var ipPorts = line.match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+\b/g);
+    if (ipPorts) {
+        ipPorts.forEach(function(ipPort) {
+            if (document.getElementById("nullCheckbox").checked) {
+                var span = document.createElement("span");
+                span.textContent = ipPort;
+                resultBox.appendChild(span);
+                resultBox.appendChild(document.createElement("br"));
+            } else {
+                protocolList.forEach(function(protocol) {
+                    var span = document.createElement("span");
+                    span.textContent = protocol + ipPort;
+                    resultBox.appendChild(span);
+                    resultBox.appendChild(document.createElement("br"));
+                });
+            }
+        });
+    }
+});
+
+
+            totalLinesElement.textContent = "Total proxy extracted: " + lines.length;
+
+            copyButton.style.display = "inline-block";
+            resultBox.style.display = "block";
+        }
+
+        function copyAllProxy() {
+            var proxies = document.querySelectorAll("#resultBox span");
+            var proxyText = "";
+            proxies.forEach(function(proxy) {
+                proxyText += proxy.textContent + "\n";
+            });
+            navigator.clipboard.writeText(proxyText).then(function() {
+                alert("All proxies copied to clipboard!");
+            }, function() {
+                alert("Failed to copy proxies to clipboard!");
+            });
+        }
+
+        function clearText() {
+            document.getElementById("inputText").value = '';
+            document.getElementById("resultBox").innerHTML = '';
+            document.getElementById("totalLines").textContent = '';
+            document.getElementById("copyButton").style.display = 'none';
+            document.getElementById("resultBox").style.display = 'none';
+        }
+    </script>
+</body>
+</html>
